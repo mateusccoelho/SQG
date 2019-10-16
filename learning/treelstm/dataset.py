@@ -17,12 +17,14 @@ class QGDataset(data.Dataset):
         self.vocab = vocab
         self.num_classes = num_classes
 
+        # Converte os tokens para indices do vocabularios
         self.lsentences = self.read_sentences(os.path.join(path, 'a.toks'))
         self.rsentences = self.read_sentences(os.path.join(path, 'b.toks'))
 
         self.ltrees = self.read_trees(os.path.join(path, 'a.parents'))
         self.rtrees = self.read_trees(os.path.join(path, 'b.parents'))
 
+        # cria tensor de labels
         self.labels = self.read_labels(os.path.join(path, 'sim.txt'))
 
         self.size = len(self.lsentences)

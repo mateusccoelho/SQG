@@ -77,6 +77,7 @@ def generate_query():
             elif force_count_query:
                 question_type = 2
 
+            print('POST generate_query efetuado')
             queries, question_type, type_confidence = queryBuilder.generate_query(question, entities, relations,
                                                                                   h1_threshold,
                                                                                   question_type)
@@ -117,12 +118,14 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     utility.setup_logging()
 
+    # Get initialization parameters
     parser = argparse.ArgumentParser(description='Generate SPARQL query')
     parser.add_argument("--port", help="port", default=5000, type=int, dest="port")
     parser.add_argument("--kb", help="'dbpedia' (default) or 'freebase'", default="dbpedia", dest="kb")
     parser.add_argument("--classifier", help="'svm' (default) or 'naivebayes'", default="svm", dest="classifier")
     args = parser.parse_args()
 
+    # Create a dataset (parser) object. They have internally a KB object.
     if args.kb == "dbpedia":
         parser = LC_QaudParser()
     elif args.kb == "freebase":
@@ -134,6 +137,8 @@ if __name__ == '__main__':
         logger.error("Server is not available. Please check the endpoint at: {}".format(kb.endpoint))
         sys.exit(0)
 
+    # Instantiate classifiers
+    # Turns out that the SVM Classifier is actually a Logistic Regression
     base_dir = "./output"
     question_type_classifier_path = os.path.join(base_dir, "question_type_classifier")
     double_relation_classifier_path = os.path.join(base_dir, "double_relation_classifier")
@@ -147,6 +152,7 @@ if __name__ == '__main__':
         double_relation_classifier = NaiveBayesClassifier(
             os.path.join(double_relation_classifier_path, "naivebayes.model"))
 
+    # Creates an orchestrator with classifiers and KB parser
     queryBuilder = Orchestrator(logger, question_type_classifier, double_relation_classifier, parser)
     logger.info("Starting the HTTP server")
     http_server = WSGIServer(('', args.port), app)

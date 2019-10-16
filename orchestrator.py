@@ -98,6 +98,10 @@ class Orchestrator:
         return self.double_relation_classifer.train(self.X_train, self.y_train)
 
     def rank(self, args, question, generated_queries):
+        print('rank function:')
+        print('args:', args)
+        print('question:', question)
+        print('generated_queries', generated_queries)
         if len(generated_queries) == 0:
             return []
         if 2 > 1:
@@ -108,6 +112,7 @@ class Orchestrator:
             # metrics = Metrics(args.num_classes)
             vocab = Vocab(filename=dataset_vocab_file,
                           data=[Constants.PAD_WORD, Constants.UNK_WORD, Constants.BOS_WORD, Constants.EOS_WORD])
+            print('criou vocab')
             similarity = DASimilarity(args.mem_dim, args.hidden_dim, args.num_classes)
             model = SimilarityTreeLSTM(
                 vocab.size(),
@@ -117,26 +122,37 @@ class Orchestrator:
                 args.sparse)
             criterion = nn.KLDivLoss()
             optimizer = optim.Adagrad(model.parameters(), lr=args.lr, weight_decay=args.wd)
+            print('criou rede')
             emb_file = os.path.join(args.data, 'dataset_embed.pth')
             if os.path.isfile(emb_file):
                 emb = torch.load(emb_file)
             model.emb.weight.data.copy_(emb)
+            print('carregou embedding')
             checkpoint = torch.load(checkpoint_filename, map_location=lambda storage, loc: storage)
             model.load_state_dict(checkpoint['model'])
+            print('carregou checkpoint')
             trainer = Trainer(args, model, criterion, optimizer)
 
             # Prepare the dataset
+            # This part generalize the pairs of questions and queries replacing
+            # entities by placeholders #ent.
+            # Generates a.txt and b.txt
             json_data = [{"id": "test", "question": question,
                           "generated_queries": [{"query": " .".join(query["where"]), "correct": False} for query in
                                                 generated_queries]}]
+            print('json data:', json_data)
             output_dir = "./output/tmp"
             preprocess_lcquad.save_split(output_dir, *preprocess_lcquad.split(json_data, self.parser))
+            print('save split')
 
-            lib_dir = './learning/treelstm/lib/'
+            # This part parses both question and query generating toks, rels and
+            # parents files.
+            lib_dir = '/home/mateus/TCC/SQG/learning/treelstm/lib/'
             classpath = ':'.join([
                 lib_dir,
                 os.path.join(lib_dir, 'stanford-parser/stanford-parser.jar'),
-                os.path.join(lib_dir, 'stanford-parser/stanford-parser-3.5.1-models.jar')])
+                os.path.join(lib_dir, 'stanford-parser/stanford-parser-3.5.1-models.jar')
+            ])
 
             if question in self.dep_tree_cache:
                 preprocess_lcquad.parse(output_dir, cp=classpath, dep_parse=False)
@@ -148,6 +164,8 @@ class Orchestrator:
                         f_token.write(cache_item[0])
                         f_parent.write(cache_item[1])
             else:
+                print('dep_tree')
+                print('classpath', classpath)
                 preprocess_lcquad.parse(output_dir, cp=classpath)
                 with open(os.path.join(output_dir, 'a.parents')) as f:
                     parents = f.readline()
@@ -169,11 +187,13 @@ class Orchestrator:
         ask_query = False
         sort_query = False
         count_query = False
+        print('orchastrator: generate_query')
 
         if question_type is None:
             question_type = 0
             if self.question_classifier is not None:
                 question_type = self.question_classifier.predict([question])
+                print('question_type predicted by classifier:', question_type)
         if question_type == 2:
             count_query = True
         elif question_type == 1:
@@ -191,6 +211,11 @@ class Orchestrator:
 
         graph = Graph(self.kb)
         query_builder = QueryBuilder()
+        print('params to find minimal subgraph:')
+        print('entities:', entities)
+        print('relations:', relations)
+        print('double_relation:', double_relation)
+        print('h1_threshold:', h1_threshold)
         graph.find_minimal_subgraph(entities, relations, double_relation=double_relation, ask_query=ask_query,
                                     sort_query=sort_query, h1_threshold=h1_threshold)
         valid_walks = query_builder.to_where_statement(graph, self.parser.parse_queryresult, ask_query=ask_query,
@@ -222,7 +247,9 @@ class Orchestrator:
         args.cuda = False
         try:
             scores = self.rank(args, question, valid_walks)
-        except:
+        except Exception as e:
+            print('rank deu errado!')
+            print(e)
             scores = [1 for _ in valid_walks]
         for idx, item in enumerate(valid_walks):
             if idx >= len(scores):

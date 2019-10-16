@@ -28,6 +28,7 @@ def dependency_parse(filepath, cp='', tokenize=True):
     tokenize_flag = '-tokenize - ' if tokenize else ''
     cmd = ('java -cp %s DependencyParse -tokpath %s -parentpath %s -relpath %s %s < %s'
            % (cp, tokpath, parentpath, relpath, tokenize_flag, filepath))
+    print('dependency parse cmd', cmd)
     os.system(cmd)
 
 
@@ -103,6 +104,7 @@ def build_vocab(filepaths, dst_path, lowercase=True):
 
 def generalize_question(a, b, parser=None):
     # replace entity mention in question with a generic symbol
+    # a is question, b is query
 
     if parser is None:
         parser = LC_Qaud_LinkedParser()
@@ -125,6 +127,7 @@ def generalize_question(a, b, parser=None):
 
 
 def split(data, parser=None):
+    print('split')
     if isinstance(data, str):
         with open(data) as datafile:
             dataset = json.load(datafile)
@@ -138,9 +141,11 @@ def split(data, parser=None):
     for item in tqdm(dataset):
         i = item["id"]
         a = item["question"]
+        print('question', a)
+        print('queries', item["generated_queries"])
         for query in item["generated_queries"]:
             a, b = generalize_question(a, query["query"], parser)
-
+            print('result', a, b)
             # Empty query should be ignored
             if len(b) < 5:
                 continue
@@ -154,6 +159,11 @@ def split(data, parser=None):
 
 
 def save_split(dst_dir, a_list, b_list, id_list, sim_list):
+    print('output dir', dst_dir)
+    print('a_list', a_list)
+    print('b_list', b_list)
+    print('id_list', id_list)
+    print('sim_list', sim_list)
     with open(os.path.join(dst_dir, 'a.txt'), 'w') as afile, \
             open(os.path.join(dst_dir, 'b.txt'), 'w') as bfile, \
             open(os.path.join(dst_dir, 'id.txt'), 'w') as idfile, \

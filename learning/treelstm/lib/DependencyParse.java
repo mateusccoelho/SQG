@@ -19,7 +19,7 @@ import java.util.Scanner;
 
 public class DependencyParse {
 
-  public static final String TAGGER_MODEL = "stanford-tagger/models/english-left3words-distsim.tagger";
+  public static final String TAGGER_MODEL = "stanford-postagger-full-2018-10-16/models/english-left3words-distsim.tagger";
   public static final String PARSER_MODEL = "edu/stanford/nlp/models/parser/nndep/english_SD.gz";
 
   public static void main(String[] args) throws Exception {

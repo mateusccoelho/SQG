@@ -104,7 +104,7 @@ class KB(object):
         where = where[6:]
         query = u"""{prefix}
 SELECT DISTINCT ?m WHERE {{ {where} }}""".format(prefix=self.query_prefix(), where=where)
-
+        print('query:', query)
         status, response = self.query(query)
         if status == 200 and len(response["results"]["bindings"]) > 0:
             output = response["results"]["bindings"]

@@ -48,11 +48,15 @@ class Graph:
             self.remove_node(edge.dest_node)
 
     def count_combinations(self, entity_items, relation_items, number_of_entities, top_uri):
+        print('count_combinations with top_uri:', top_uri)
         total = 0
         for relation_item in relation_items:
             rel_uris_len = len(relation_item.top_uris(top_uri))
+            print('rel', relation_item, rel_uris_len)
             for entity_uris in itertools.product(*[items.top_uris(top_uri) for items in entity_items]):
+                print(entity_uris, list(itertools.combinations(entity_uris, number_of_entities)))
                 total += rel_uris_len * len(list(itertools.combinations(entity_uris, number_of_entities)))
+        print('total:', total)
         return total
 
     def __one_hop_graph(self, entity_items, relation_items, threshold=None, number_of_entities=1):
@@ -72,6 +76,7 @@ class Graph:
                             pbar.update(1)
                             result = self.kb.one_hop_graph(entity_uri[0], relation_uri,
                                                            entity_uri[1] if len(entity_uri) > 1 else None)
+                            print('result:', result)
                             if result is not None:
                                 for item in result:
                                     m = int(item["m"]["value"])
@@ -106,10 +111,12 @@ class Graph:
         # self.logger.info("finding one hop graph finished")
 
         if len(self.edges) > 100:
+            print('grafo resultante tem mais de 100 arcos')
             return
 
         # Extend the existing edges with another hop
         # self.logger.info("Extend edges with another hop")
+        print('expancao de arcos')
         self.__extend_edges(self.edges, relation_items)
 
     def __extend_edges(self, edges, relation_items):
