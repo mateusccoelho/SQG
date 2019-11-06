@@ -13,13 +13,13 @@ class Metrics():
                                                          self.f1(predictions, labels))
 
     def f1(self, predictions, labels):
-        try:
-            y_true = list(labels)
-            y_pred = map(round, predictions)
-            precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='macro')
-            return precision, recall, f1
-        except:
-            return 0, 0, 0
+        # try:
+        y_true = list(labels)
+        y_pred = list(map(round, list(predictions)))
+        precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='macro')
+        return precision, recall, f1
+        # except:
+        #     return 0, 0, 0
 
     def pearson(self, predictions, labels):
         x = deepcopy(predictions)

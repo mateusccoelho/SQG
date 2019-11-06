@@ -30,7 +30,7 @@ class Trainer(object):
                 target = target.cuda()
             output = self.model(ltree, linput, rtree, rinput)
             err = self.criterion(output, target)
-            loss += err.data[0]
+            loss += err.data.item()
             err.backward()
             k += 1
             if k % self.args.batchsize == 0:

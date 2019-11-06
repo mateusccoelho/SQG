@@ -99,7 +99,7 @@ class Orchestrator:
 
     def rank(self, args, question, generated_queries):
         print('rank function:')
-        print('args:', args)
+        print('args indim:', args.input_dim)
         print('question:', question)
         print('generated_queries', generated_queries)
         if len(generated_queries) == 0:
@@ -120,12 +120,14 @@ class Orchestrator:
                 args.mem_dim,
                 similarity,
                 args.sparse)
+            print(model.emb)
             criterion = nn.KLDivLoss()
             optimizer = optim.Adagrad(model.parameters(), lr=args.lr, weight_decay=args.wd)
             print('criou rede')
             emb_file = os.path.join(args.data, 'dataset_embed.pth')
             if os.path.isfile(emb_file):
                 emb = torch.load(emb_file)
+            print(emb.shape)
             model.emb.weight.data.copy_(emb)
             print('carregou embedding')
             checkpoint = torch.load(checkpoint_filename, map_location=lambda storage, loc: storage)

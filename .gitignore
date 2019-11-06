@@ -11,6 +11,8 @@ train
 learning/treelstm/checkpoints/
 learning/treelstm/data/
 data
+*.pth
+*.vocab
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
