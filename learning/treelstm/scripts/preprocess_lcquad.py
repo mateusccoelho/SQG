@@ -127,7 +127,7 @@ def generalize_question(a, b, parser=None):
 
 
 def split(data, parser=None):
-    print('split')
+    #print('split')
     if isinstance(data, str):
         with open(data) as datafile:
             dataset = json.load(datafile)
@@ -141,11 +141,11 @@ def split(data, parser=None):
     for item in tqdm(dataset):
         i = item["id"]
         a = item["question"]
-        print('question', a)
-        print('queries', item["generated_queries"])
+        #print('question', a)
+        #print('queries', item["generated_queries"])
         for query in item["generated_queries"]:
             a, b = generalize_question(a, query["query"], parser)
-            print('result', a, b)
+            #print('result', a, b)
             # Empty query should be ignored
             if len(b) < 5:
                 continue

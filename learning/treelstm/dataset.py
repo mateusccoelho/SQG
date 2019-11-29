@@ -10,18 +10,18 @@ import learning.treelstm.Constants as Constants
 from learning.treelstm.tree import Tree
 from learning.treelstm.vocab import Vocab
 
+from transformers import BertTokenizer
 
 class QGDataset(data.Dataset):
-    def __init__(self, path, vocab, num_classes):
+    def __init__(self, path, vocab, bert_tok, num_classes):
         super(QGDataset, self).__init__()
         self.vocab = vocab
+        self.bert_tok = bert_tok
         self.num_classes = num_classes
 
         # Converte os tokens para indices do vocabularios
-        self.lsentences = self.read_sentences(os.path.join(path, 'a.toks'))
+        self.lsentences = self.read_sentences(os.path.join(path, 'a.txt'), bert=True)
         self.rsentences = self.read_sentences(os.path.join(path, 'b.toks'))
-
-        self.ltrees = self.read_trees(os.path.join(path, 'a.parents'))
         self.rtrees = self.read_trees(os.path.join(path, 'b.parents'))
 
         # cria tensor de labels
@@ -33,20 +33,22 @@ class QGDataset(data.Dataset):
         return self.size
 
     def __getitem__(self, index):
-        ltree = deepcopy(self.ltrees[index])
-        rtree = deepcopy(self.rtrees[index])
         lsent = deepcopy(self.lsentences[index])
+        rtree = deepcopy(self.rtrees[index])
         rsent = deepcopy(self.rsentences[index])
         label = deepcopy(self.labels[index])
-        return (ltree, lsent, rtree, rsent, label)
+        return (lsent, rtree, rsent, label)
 
-    def read_sentences(self, filename):
+    def read_sentences(self, filename, bert=False):
         with open(filename, 'r') as f:
-            sentences = [self.read_sentence(line) for line in tqdm(f.readlines())]
+            sentences = [self.read_sentence(line, bert) for line in tqdm(f.readlines())]
         return sentences
 
-    def read_sentence(self, line):
-        indices = self.vocab.convertToIdx(line.split(), Constants.UNK_WORD)
+    def read_sentence(self, line, bert):
+        if(bert):
+            indices = self.bert_tok.encode(line, add_special_tokens=True)
+        else:
+            indices = self.vocab.convertToIdx(line.split(), Constants.UNK_WORD)
         return torch.LongTensor(indices)
 
     def read_trees(self, filename):

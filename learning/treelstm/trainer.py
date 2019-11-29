@@ -27,7 +27,7 @@ class Trainer(object):
             target = Var(map_label_to_target(label, dataset.num_classes))
             if self.args.cuda:
                 linput, rinput = linput.cuda(), rinput.cuda()
-                target = target.cuda()
+                target = target.cuda()  
             output = self.model(ltree, linput, rtree, rinput)
             err = self.criterion(output, target)
             loss += err.data.item()
